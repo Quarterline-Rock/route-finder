@@ -173,10 +173,11 @@ const Q = [
   {id:"accredited", q:"Are you an accredited investor?", hint:"Generally, $200,000 or more in annual income, or $1 million or more in net worth not counting your home.", type:"one",
     show:a=>a.goal==="grow",
     opts:[["yes","Yes"],["no","No"],["unsure","I’m not sure"]]},
-  {id:"have", q:"Which of these do you have?", hint:"Choose any that apply, or none.", type:"many", show:a=>a.goal!=="org", opts:a=>[
+  {id:"have", q:"Which of these do you have?", hint:"Choose any that apply.", type:"many", show:a=>a.goal!=="org", opts:a=>[
     ["ira","A retirement account, such as an IRA"],
     ...(a.goal==="grow" ? [["biz","A business"]] : []),
-    ...(giving(a) ? [["daf","A donor-advised fund"]] : [])]},
+    ...(giving(a) ? [["daf","A donor-advised fund"]] : []),
+    ["none","None"]]},
   {id:"age", q:"Are you 70½ or older?", type:"one",
     show:a=>giving(a) && a.have.includes("ira"),
     opts:[["yes","Yes"],["no","No"]]}
@@ -239,7 +240,10 @@ function render(){
   stage.innerHTML = h;
   stage.querySelectorAll(".opt").forEach(b => b.onclick = () => {
     const v = b.dataset.v;
-    if (q.type === "many") a.have = a.have.includes(v) ? a.have.filter(x => x!==v) : [...a.have, v];
+    if (q.type === "many"){
+      if (v === "none") a.have = a.have.includes("none") ? [] : ["none"];
+      else a.have = a.have.includes(v) ? a.have.filter(x => x!==v) : [...a.have.filter(x => x!=="none"), v];
+    }
     else {
       a[q.id] = v;
       if (q.id === "goal"){ delete a.accredited; delete a.charity; delete a.age; delete a.size; a.have = []; }
